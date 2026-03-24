@@ -1,109 +1,117 @@
-const eventForm = document.getElementById("eventForm");
-const eventTitle = document.getElementById("eventTitle");
-const eventDate = document.getElementById("eventDate");
-const eventCategory = document.getElementById("eventCategory");
-const eventDescription = document.getElementById("eventDescription");
-const clearAllBtn = document.getElementById("clearAllBtn");
-const addSampleBtn = document.getElementById("addSampleBtn");
-const eventContainer = document.getElementById("eventContainer");
-const demoContent = document.getElementById("demoContent");
-let sampleEvents = [    
-    {
-        title: "Web Dev Workshop",
-        date: "2026-06-04",
-        category: "Workshop",
-        description: "Learn JavaScript with hands-on practice."
-    },
-    {
-        title: "Tech Conference",
-        date: "2026-07-10",
-        category: "Conference",
-        description: "Annual technology networking event."
+// const pro = new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//         console.log("num");
+//         resolve();
+//     }, 2000);
+// })
+
+
+
+// __________________________________________________________________________________________________________________________________________________________
+
+
+
+// function getData(){
+//     pro.then((res)=>console.log(res))
+//     console.log("after promise");
+// }
+
+
+// __________________________________________________________________________________________________________________________________________________________
+
+
+
+// async function demo(){
+//     return "Hello World";
+// }
+// console.log(demo()); 
+
+
+// __________________________________________________________________________________________________________________________________________________________
+
+
+// async function fetchData(city) {
+//     try {
+//         const API_key = "14ac0ec299dff0bd71094539fe83cf5a";
+//         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_key}&units=metric`);
+
+//         const data = await response.json();
+//         console.log(city);
+//         console.log(data.main.temp);
+//         console.log(data.main.humidity);
+//     } catch (err) {
+//         console.error(err);
+//     }
+// }
+
+
+
+// __________________________________________________________________________________________________________________________________________________________
+
+
+
+let history = [];
+
+document.getElementById("searchBtn").addEventListener("click", getWeather);
+
+async function getWeather() {
+  let city = document.getElementById("cityInput").value;
+
+  if (city === "") {
+    alert("Please enter a city name");
+    return;
+  }
+
+  let API_key = "14ac0ec299dff0bd71094539fe83cf5a";
+
+  try {
+    let response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_key}&units=metric`
+    );
+
+    let data = await response.json();
+
+    if (data.cod != 200) {
+      document.getElementById("weather").innerHTML = "City not found ❌";
+      return;
     }
-];
 
-
-function createEventCard(eventData) {
-
-    const card = document.createElement("div");
-    card.classList.add("event-card");
-
-    card.innerHTML = `
-        <button class="delete-btn">X</button>
-        <h3>${eventData.title}</h3>
-        <div>${eventData.date}</div>
-        <span>${eventData.category}</span>
-        <p>${eventData.description}</p>
+    document.getElementById("weather").innerHTML = `
+      <div class="weather-item">City: ${data.name}</div>
+      <div class="weather-item">Temperature: ${data.main.temp} °C</div>
+      <div class="weather-item">Humidity: ${data.main.humidity}%</div>
     `;
 
-    // Delete button functionality
-    const deleteBtn = card.querySelector(".delete-btn");
-    deleteBtn.addEventListener("click", function () {
-        card.remove();
-        checkEmptyState();
-    });
-
-    return card;
-}
-
-
-
-function addEvent(eventData) {
-
-    // If empty state is present then remove it
-    const emptyState = document.querySelector(".empty-state");
-    if (emptyState) emptyState.remove();
-
-    eventContainer.appendChild(createEventCard(eventData));
-}
-
-
-
-
-function checkEmptyState() {
-    if (eventContainer.children.length === 0) {
-        eventContainer.innerHTML =
-            `<div class="empty-state">
-                No events yet. Add your first event!
-            </div>`;
+    if (!history.includes(data.name)) {
+      history.push(data.name);
     }
+
+    showHistory();
+
+  } catch (error) {
+    console.log(error);
+    document.getElementById("weather").innerHTML = "Error fetching data ❌";
+  }
 }
 
-eventForm.addEventListener("submit", function (event) {
+function showHistory() {
+  let list = document.getElementById("history");
+  list.innerHTML = "";
 
-    event.preventDefault();
+  for (let i = 0; i < history.length; i++) {
+    let btn = document.createElement("button");
+    btn.innerText = history[i];
 
-    const eventData = {
-        title: eventTitle.value,
-        date: eventDate.value,
-        category: eventCategory.value,
-        description: eventDescription.value
+    btn.onclick = function () {
+      document.getElementById("cityInput").value = history[i];
+      getWeather();
     };
 
-    addEvent(eventData);
+    list.appendChild(btn);
+  }
+}
 
-    eventForm.reset();
-});
-
-
-
-clearAllBtn.addEventListener("click", function () {
-    eventContainer.innerHTML = "";
-    checkEmptyState();
-});
-
-
-
-
-addSampleBtn.addEventListener("click", function () {
-    sampleEvents.forEach(function (event) {
-        addEvent(event);
-    });
-});
-
-
-
-document.addEventListener("keydown", function () {
-    demoContent.textContent = "You pressed a key! ";
-    demoContent.style.backgroundColor = "lightblue";
-});
+function clearHistory() {
+  history = [];
+  document.getElementById("history").innerHTML = "";
+}
